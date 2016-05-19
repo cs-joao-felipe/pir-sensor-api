@@ -2,6 +2,7 @@ var express    = require('express');
 var app        = express();
 var port = process.env.PORT || 8080; 
 var delay = 1000;
+var timeout;
 var Gpio = require('onoff').Gpio,
   led = new Gpio(4, 'out'),
   pir = new Gpio(17, 'in'),
@@ -35,7 +36,11 @@ function exit() {
 function toggleLed(state) {
  if(state === 1) {
    led.writeSync(1);
-   setTimeout(offLed,60000);
+   if(timeout) {
+     console.log("clearing previous timeout.");
+     clearTimeout(timeout);
+   }
+   timeout = setTimeout(offLed,60000);
  }
 };
 
