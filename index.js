@@ -1,3 +1,4 @@
+var readCount= 0;
 var express    = require('express');
 var app        = express();
 var port = process.env.PORT || 8080; 
@@ -22,9 +23,9 @@ app.listen(port);
 console.log('Magic happens on port ' + port);
 
 iv = setInterval(function () {
-  state = pir.readSync() ^ 0; // 1 = on 0 = off
-  toggleLed(state);
-  console.log("curr state:" + state);
+  toggleState(pir.readSync() ^ 0); // 1 = on 0 = off
+  console.log(readCount +": curr state:" + state);
+  readCount++;
 }, delay);
 
 function exit() {
@@ -33,19 +34,21 @@ function exit() {
   process.exit();
 };
 
-function toggleLed(state) {
- if(state === 1) {
+function toggleState(newState) {
+ if(newState === 1) {
    led.writeSync(1);
    if(timeout) {
      console.log("clearing previous timeout.");
      clearTimeout(timeout);
    }
+   state = 1;
    timeout = setTimeout(offLed,60000);
  }
 };
 
 function offLed(){
  led.writeSync(0);
+ state = 0;
 };
 
 process.on('SIGINT', exit);
