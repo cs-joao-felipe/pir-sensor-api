@@ -39,7 +39,7 @@ function toggleState(newState) {
 
     if (toggleStateTimeout) {
         console.log('clearing previous toggleStateTimeout.');
-        cleartoggleStateTimeout(toggleStateTimeout);
+        clearTimeout(toggleStateTimeout);
     }
 
     toggleStateTimeout = setTimeout(turnLedOff, 60000);
