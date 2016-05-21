@@ -1,15 +1,16 @@
 'use strict';
 
+const express = require('express');
+const app = express();
+
 var readCount = 0;
-var express = require('express');
-var app = express();
 var port = process.env.PORT || 8080;
-var delay = 1000;
-var timeout;
-var Gpio = require('onoff').Gpio,
-  led = new Gpio(4, 'out'),
-  pir = new Gpio(17, 'in'),
-  iv;
+var checkForPresenceInterval = 1000;
+var toggleStateTimeout;
+var Gpio = require('onoff').Gpio;
+var led = new Gpio(4, 'out');
+var pir = new Gpio(17, 'in');
+var heartbeat;
 
 var state = 0;
 function getState() {
@@ -18,32 +19,33 @@ function getState() {
 
 require('./lib/route')(app, getState);
 
-iv = setInterval(function () {
-  toggleState(pir.readSync() ^ 0); // 1 = on 0 = off
-  console.log(readCount +": curr state:" + state);
-  readCount++;
-}, delay);
+heartbeat = setInterval(function () {
+    toggleState(pir.readSync() ^ 0); // 1 = on 0 = off
+    console.log(readCount + ': curr state:' + state);
+    readCount++;
+}, checkForPresenceInterval);
 
 function exit() {
+    clearInterval(heartbeat);
     led.unexport();
     pir.unexport();
     process.exit();
 };
 
 function toggleState(newState) {
-    if(newState !== 1) return;
+    if (newState !== 1) return;
 
     turnLedOn();
 
-    if (timeout) {
-        console.log("clearing previous timeout.");
-        clearTimeout(timeout);
+    if (toggleStateTimeout) {
+        console.log('clearing previous toggleStateTimeout.');
+        cleartoggleStateTimeout(toggleStateTimeout);
     }
 
-    timeout = setTimeout(turnLedOff, 60000);
+    toggleStateTimeout = setTimeout(turnLedOff, 60000);
 }
 
-function turnLedOff(){
+function turnLedOff() {
     led.writeSync(0);
     state = 0;
 
@@ -60,4 +62,4 @@ function turnLedOn() {
 process.on('SIGINT', exit);
 
 app.listen(port);
-console.log(`Magic happens on port ${ port }`);
+console.log(`Magic happens on port ${port}`);
